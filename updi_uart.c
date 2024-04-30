@@ -12,21 +12,23 @@
 #include "updi_uart.h"
 
 // I/O registers for the virtual UART
-#define	RX_FLAGS	GPIOR0
-#define	RX		GPIOR1
-#define	TX_FLAGS	GPIOR2
-#define	TX		GPIOR3
+#define	UART_FLAGS	GPIOR2
+#define	UART_RX		GPIOR3
 
-// Bit masks for the flags registers
-#define	ENABLE		0x02
-#define	FULL		0x01
+// Bit masks for the flags register
+#define	FLAG_ENABLE	0x01		// UART is enabled
+#define	FLAG_RX		0x02		// RX buffer full
+
+// Undocumented registers for OCD messaging, used for transmitting
+#define	SYSCFG_OCDM	SYSCFG.reserved_0x18
+#define	SYSCFG_OCDMS	SYSCFG.reserved_0x19
 
 // ----------------------------------------------------------------------
 // Check whether the UART has been enabled by upditerm
 // ----------------------------------------------------------------------
 extern	_Bool	updi_uart_enabled	( void )
 {
-	return (TX_FLAGS & ENABLE);
+	return (UART_FLAGS & FLAG_ENABLE);
 }
 
 // ----------------------------------------------------------------------
@@ -34,12 +36,11 @@ extern	_Bool	updi_uart_enabled	( void )
 // ----------------------------------------------------------------------
 extern	void	updi_uart_tx		( uint8_t byte )
 {
-	while	( TX_FLAGS & ENABLE )
+	while	( UART_FLAGS & FLAG_ENABLE )
 	{
-		if	( ! (TX_FLAGS & FULL) )
+		if	( ! SYSCFG_OCDMS )
 		{
-			TX = byte;
-			TX_FLAGS |= FULL;
+			SYSCFG_OCDM = byte;
 			break;
 		}
 	}
@@ -50,7 +51,7 @@ extern	void	updi_uart_tx		( uint8_t byte )
 // ----------------------------------------------------------------------
 extern	_Bool	updi_uart_rx_poll	( void )
 {
-	return (RX_FLAGS & FULL);
+	return (UART_FLAGS & FLAG_RX);
 }
 
 // ----------------------------------------------------------------------
@@ -60,10 +61,10 @@ extern	uint8_t	updi_uart_rx		( void )
 {
 	uint8_t	byte;
 
-	while	( ! (RX_FLAGS & FULL) )
+	while	( ! (UART_FLAGS & FLAG_RX) )
 	{
 	}
-	byte = RX;
-	RX_FLAGS &= ~ FULL;
+	byte = UART_RX;
+	UART_FLAGS &= ~ FLAG_RX;
 	return byte;
 }

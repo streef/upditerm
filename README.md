@@ -22,7 +22,7 @@ when upditerm is not connected.
 
 The transfer speed will be quite a bit lower than with a direct serial
 connection, as several UPDI commands are needed to transfer a single
-byte. Receiving a byte requires 14 bytes over the serial line, and
+byte. Receiving a byte requires 6 bytes over the serial line, and
 sending a byte requires 16 bytes. According to the datasheet, the
 maximum serial port speed supported by the UPDI interface is 0.9 Mbps,
 but the serial port hardware may have a lower limit. I've successfully
@@ -33,12 +33,12 @@ Block (SIB) of the AVR.
 
 ## Virtual UART
 
-The virtual UART uses the GPIOR0..GPIOR3 I/O registers as TX/RX
-buffers and status registers.  These registers are located in the
-range 0x00..0x3F and can be accessed via UPDI without switching to OCD
-mode. Documentation on OCD mode is not publicly available, but it
-appears that switching to OCD requires the device to be reset, which
-is not always desirable.
+The virtual UART uses (undocumented) OCD messaging to transmit data
+and two GPIORx I/O registers to receive data.  These registers are
+located in the range 0x00..0x3F and can be accessed via UPDI without
+halting the CPU.  Receiving a byte via OCD messaging is considerably
+faster than fetching a byte from the GPIORx registers and can be done
+with 6 instead of 14 bytes of UPDI communication.
 
 ## Usage
 

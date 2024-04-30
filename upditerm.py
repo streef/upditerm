@@ -40,13 +40,11 @@ SERIAL_TIMEOUT  = 1.0
 IDLE_TIMEOUT    = 0.25
 
 # I/O memory addresses used for a virtual UART
-RX_FLAGS        = 0x1c          # GPIOR0
-RX              = 0x1d          # GPIOR1 - target input
-TX_FLAGS        = 0x1e          # GPIOR2
-TX              = 0x1f          # GPIOR3 - target output
-# bit masks for the FLAGS registers
-ENABLE          = 0x02
-FULL            = 0x01
+UART_FLAGS      = 0x1e          # GPIOR2
+UART_RX         = 0x1f          # GPIOR3
+# bit masks for the UART_FLAGS register
+FLAG_ENABLE     = 0x01          # UART is enabled
+FLAG_RX         = 0x02          # RX buffer full
 
 # UPDI characters
 SYNCH           = 0x55
@@ -94,6 +92,8 @@ UROWPROG        = 0x04
 NVMPROG         = 0x08
 INSLEEP         = 0x10
 RSTSYS          = 0x20
+
+ASI_OCD_MESSAGE = 0xd
 
 # UPDI keys
 KEY_NVMPROG     = 'NVMProg '
@@ -216,36 +216,33 @@ class SerialUPDI:
         self.updi = UPDI(port, baudrate)
         if reset:
             self.updi.reset()
-        self.updi.sts8(TX_FLAGS, ENABLE)
+        self.updi.sts8(UART_FLAGS, FLAG_ENABLE)
     def __del__(self):
         if self.updi:
             try:
-                self.updi.sts8(TX_FLAGS, 0)
+                self.updi.sts8(UART_FLAGS, 0)
             except SystemExit:
                 pass
     def send1(self, byte, blocking=True):
         while True:
-            flags = self.updi.lds8(RX_FLAGS)
-            if not flags & FULL:
-                self.updi.sts8(RX, byte)
-                self.updi.sts8(RX_FLAGS, FULL)
+            flags = self.updi.lds8(UART_FLAGS)
+            if not flags & FLAG_RX:
+                self.updi.sts8(UART_RX, byte)
+                self.updi.sts8(UART_FLAGS, flags | FLAG_RX)
                 return True
             if not blocking:
                 return False
     def recv1(self, blocking=True):
         while True:
-            flags = self.updi.lds8(TX_FLAGS)
-            if not flags & ENABLE:
-                return None
-            if flags & FULL:
-                byte = self.updi.lds8(TX)
-                self.updi.sts8(TX_FLAGS, ENABLE)
-                return byte
+            flags = self.updi.ldcs(ASI_OCD_STATUS)
+            # check for an OCD message byte
+            if flags & OCDMV:
+                return self.updi.ldcs(ASI_OCD_MESSAGE)
             if not blocking:
                 return None
     def reset(self):
         self.updi.reset()
-        self.updi.sts8(TX_FLAGS, ENABLE)
+        self.updi.sts8(UART_FLAGS, FLAG_ENABLE)
 
 class Console:
     "Keyboard & Screen"
