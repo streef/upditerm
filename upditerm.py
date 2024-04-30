@@ -19,7 +19,7 @@ import threading
 import serial
 import serial.tools.list_ports
 
-VERSION         = '1.0'
+VERSION         = '1.1'
 
 # Commandline defaults
 BAUDRATE        = 921600
@@ -88,6 +88,7 @@ UPDICLKSEL16    = 0x01
 
 ASI_SYS_STATUS  = 0xb
 LOCKSTATUS      = 0x01
+BOOTDONE        = 0x02
 UROWPROG        = 0x04
 NVMPROG         = 0x08
 INSLEEP         = 0x10
@@ -214,6 +215,7 @@ class SerialUPDI:
     def __init__(self, port, baudrate=BAUDRATE, reset=False):
         self.updi = None
         self.updi = UPDI(port, baudrate)
+        self.updi.key(KEY_OCD)  # switch to OCD mode to enable stop on reset
         if reset:
             self.updi.reset()
         self.updi.sts8(UART_FLAGS, FLAG_ENABLE)
@@ -235,6 +237,10 @@ class SerialUPDI:
     def recv1(self, blocking=True):
         while True:
             flags = self.updi.ldcs(ASI_OCD_STATUS)
+            # check for a stopped CPU which indicates that there was a RESET
+            if flags & OCD_STOPPED:
+                self.updi.sts8(UART_FLAGS, FLAG_ENABLE) # reenable UART
+                self.updi.stcs(ASI_OCD_CTRLA, OCD_RUN)  # restart CPU
             # check for an OCD message byte
             if flags & OCDMV:
                 return self.updi.ldcs(ASI_OCD_MESSAGE)
@@ -242,7 +248,6 @@ class SerialUPDI:
                 return None
     def reset(self):
         self.updi.reset()
-        self.updi.sts8(UART_FLAGS, FLAG_ENABLE)
 
 class Console:
     "Keyboard & Screen"

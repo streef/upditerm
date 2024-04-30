@@ -8,6 +8,7 @@
 //   -  decrease the brightness of the LED by 5%
 //   s  show the chip signature
 //   d  dump the contents of the SRAM
+//   r  use the watchdog timer to force a RESET
 //
 // Copyright 2024 Dick Streefland
 //
@@ -86,7 +87,6 @@ extern	int	main		( void )
 	uint8_t	key;
 
 	updi_stdio_init();	// redirect stdin/stdout
-	_delay_ms( 5 );		// give upditerm time to enable the transmitter
 	printf( "\nRESET\n" );
 	brightness = 0;
 	dir = +1;
@@ -140,6 +140,10 @@ extern	int	main		( void )
 				break;
 			case 'd':	// dump SRAM
 				dump();
+				break;
+			case 'r':
+				CCP = 0xd8;
+				WDT.CTRLA = WDT_PERIOD_256CLK_gc;	// 0.256 sec
 				break;
 			default:
 				printf( "unrecognized key: %02x\n", key );

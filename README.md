@@ -40,6 +40,14 @@ halting the CPU.  Receiving a byte via OCD messaging is considerably
 faster than fetching a byte from the GPIORx registers and can be done
 with 6 instead of 14 bytes of UPDI communication.
 
+The UPDI interface is switched to the (undocumented) OCD mode to
+enable stop on reset. This allows upditerm to detect a reset of the
+CPU and reenable the UART before restarting the CPU.  When you use the
+option to reset the CPU when connecting, stopping the CPU after reset
+avoids a race between upditerm enabling the UART and the first output
+from the AVR.  It also allows upditerm to reenable the UART when a
+reset occurs later.
+
 ## Usage
 
 ```
