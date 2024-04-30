@@ -85,7 +85,7 @@ extern	int	main		( void )
 	int8_t	dir;
 	uint8_t	key;
 
-	updi_stdio_init();	// redirect stdin/stdout and enable receiver
+	updi_stdio_init();	// redirect stdin/stdout
 	_delay_ms( 5 );		// give upditerm time to enable the transmitter
 	printf( "\nRESET\n" );
 	brightness = 0;
@@ -94,7 +94,7 @@ extern	int	main		( void )
 	pwm_set( brightness );
 	while	( 1 )
 	{
-		if	( ! updi_uart_tx_enabled() )
+		if	( ! updi_uart_enabled() )
 		{
 			if	( brightness == 0 )
 			{

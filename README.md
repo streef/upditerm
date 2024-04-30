@@ -68,7 +68,9 @@ Instead of using upditerm interactively, you can redirect the input
 and/or output. When the input is redirected, the escape character is
 disabled and the -k and -q options are implicitly enabled. In this
 case, upditerm will terminate when the input is exhausted and the
-receiver is idle for 0.25 seconds.
+receiver is idle for 0.25 seconds. For interactive use, upditerm will
+not block on unprocessed input so that you can always use escape
+sequences to terminate the program or reset the AVR.
 
 ## Demo program
 

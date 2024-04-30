@@ -37,5 +37,4 @@ extern	void	updi_stdio_init	( void )
 {
 	stdin  = & stream;
 	stdout = & stream;
-	updi_uart_rx_enable();
 }

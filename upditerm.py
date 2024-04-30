@@ -226,11 +226,9 @@ class SerialUPDI:
     def send1(self, byte, blocking=True):
         while True:
             flags = self.updi.lds8(RX_FLAGS)
-            if not flags & ENABLE:
-                return True
             if not flags & FULL:
                 self.updi.sts8(RX, byte)
-                self.updi.sts8(RX_FLAGS, ENABLE | FULL)
+                self.updi.sts8(RX_FLAGS, FULL)
                 return True
             if not blocking:
                 return False
@@ -316,6 +314,7 @@ class Terminal:
     def writer(self):
         "Copy from console to serial port"
         while True:
+            interactive = not self.escape is None
             try:
                 key = self.console.get()
                 if key is None:
@@ -333,7 +332,7 @@ class Terminal:
                 while True:
                     with self.serport_lock:
                         status = self.serport.send1(key, blocking=False)
-                    if status:
+                    if status or interactive:
                         break
                     time.sleep(0.010)
             except SystemExit:

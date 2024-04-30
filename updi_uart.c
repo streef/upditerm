@@ -22,48 +22,9 @@
 #define	FULL		0x01
 
 // ----------------------------------------------------------------------
-// Enable the receiver, allowing upditerm to send data
+// Check whether the UART has been enabled by upditerm
 // ----------------------------------------------------------------------
-extern	void	updi_uart_rx_enable	( void )
-{
-	RX_FLAGS |= ENABLE;
-}
-
-// ----------------------------------------------------------------------
-// Disable the receiver
-// ----------------------------------------------------------------------
-extern	void	updi_uart_rx_disable	( void )
-{
-	RX_FLAGS &= ~ ENABLE;
-}
-
-// ----------------------------------------------------------------------
-// Check if a byte is available in the input buffer
-// ----------------------------------------------------------------------
-extern	_Bool	updi_uart_rx_poll	( void )
-{
-	return RX_FLAGS == (ENABLE | FULL);
-}
-
-// ----------------------------------------------------------------------
-// Receive a byte
-// ----------------------------------------------------------------------
-extern	uint8_t	updi_uart_rx		( void )
-{
-	uint8_t	byte;
-
-	while	( ! updi_uart_rx_poll() )
-	{
-	}
-	byte = RX;
-	RX_FLAGS &= ~ FULL;
-	return byte;
-}
-
-// ----------------------------------------------------------------------
-// Check whether the transmitter has been enabled by upditerm
-// ----------------------------------------------------------------------
-extern	_Bool	updi_uart_tx_enabled	( void )
+extern	_Bool	updi_uart_enabled	( void )
 {
 	return (TX_FLAGS & ENABLE);
 }
@@ -82,4 +43,27 @@ extern	void	updi_uart_tx		( uint8_t byte )
 			break;
 		}
 	}
+}
+
+// ----------------------------------------------------------------------
+// Check if a byte is available in the input buffer
+// ----------------------------------------------------------------------
+extern	_Bool	updi_uart_rx_poll	( void )
+{
+	return (RX_FLAGS & FULL);
+}
+
+// ----------------------------------------------------------------------
+// Receive a byte
+// ----------------------------------------------------------------------
+extern	uint8_t	updi_uart_rx		( void )
+{
+	uint8_t	byte;
+
+	while	( ! (RX_FLAGS & FULL) )
+	{
+	}
+	byte = RX;
+	RX_FLAGS &= ~ FULL;
+	return byte;
 }
