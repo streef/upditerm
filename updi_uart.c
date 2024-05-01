@@ -20,8 +20,8 @@
 #define	FLAG_RX		0x02		// RX buffer full
 
 // Undocumented registers for OCD messaging, used for transmitting
-#define	SYSCFG_OCDM	SYSCFG.reserved_0x18
-#define	SYSCFG_OCDMS	SYSCFG.reserved_0x19
+#define	SYSCFG_OCDM	_SFR_MEM8(0x0F18)
+#define	SYSCFG_OCDMS	_SFR_MEM8(0x0F19)
 
 // ----------------------------------------------------------------------
 // Check whether the UART has been enabled by upditerm

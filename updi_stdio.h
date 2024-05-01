@@ -7,4 +7,13 @@
 // Public License as published by the Free Software Foundation.
 // ======================================================================
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 extern	void	updi_stdio_init	( void );
+
+#ifdef __cplusplus
+}
+#endif

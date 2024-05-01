@@ -16,6 +16,7 @@
 // ----------------------------------------------------------------------
 static	int	updi_getchar	( FILE* stream )
 {
+	(void) stream;
 	return updi_uart_rx();
 }
 
@@ -24,6 +25,7 @@ static	int	updi_getchar	( FILE* stream )
 // ----------------------------------------------------------------------
 static	int	updi_putchar	( char c, FILE* stream )
 {
+	(void) stream;
 	updi_uart_tx( c );
 	return c;
 }
